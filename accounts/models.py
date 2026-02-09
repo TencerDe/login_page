@@ -8,7 +8,7 @@ import uuid
 class CustomUser(AbstractUser):
     username = None #Removing username field for setting email as primary login method
     email = models.EmailField(unique=True, null=False, blank=False)
-    iden = models.UUIDField(pk=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     is_verified = models.BooleanField(default=False, help_text="Please verify yourself from your email before logging in")
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
