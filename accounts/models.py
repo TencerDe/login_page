@@ -47,12 +47,15 @@ class CustomUser(AbstractUser):
 
 
 class EmailVerificationToken(models.Model):
-    user_reference = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    token = models.CharField(unique=True, db_index=True)
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="Verification Token")
+    token = models.CharField(unique=True, max_length= 75)
     created_at = models.DateTimeField(auto_now_add=True)
-    expires_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
     is_used = models.BooleanField(default=False)
 
+    class Meta:
+        ordering = ["-created_at"]
+        
 class refreshToken():
     pass
 
