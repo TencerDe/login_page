@@ -3,6 +3,7 @@ from django.contrib.auth import login, logout
 from django.contrib.auth.models import AbstractBaseUser, AbstractUser
 import uuid
 from django.contrib.auth.models import BaseUserManager
+from django.conf import settings
 
 # Create your models here.
 
@@ -55,6 +56,44 @@ class EmailVerificationToken(models.Model):
 
     class Meta:
         ordering = ["-created_at"]
+
+
+class UserSession(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="sessions"
+    )
+
+    refresh_token = models.CharField(
+        max_length=255,
+        unique=True
+    )
+
+    device_name = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True
+    )
+
+    ip_address = models.GenericIPAddressField(
+        blank=True,
+        null=True
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+
+    is_revoked = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.user.email} | {self.device_name or 'Unknown Device'}"
+    
         
 class refreshToken():
     pass
