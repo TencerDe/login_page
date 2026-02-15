@@ -58,6 +58,7 @@ class EmailVerificationToken(models.Model):
         ordering = ["-created_at"]
 
 
+
 class UserSession(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
@@ -95,9 +96,16 @@ class UserSession(models.Model):
         return f"{self.user.email} | {self.device_name or 'Unknown Device'}"
     
         
-class refreshToken():
-    pass
 
-class PasswordResetToken():
-    pass
 
+class PasswordResetToken(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="password_reset_tokens", on_delete=models.CASCADE)
+    token = models.CharField(unique=True, max_length= 128)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    ip_address = models.GenericIPAddressField(blank=True,null=True)
+    is_used = models.BooleanField(default=False)
+    class Meta:
+        ordering = ["-created_at"]
+    def __str__(self):
+        return f"{self.user.email} | {self.created_at}"
