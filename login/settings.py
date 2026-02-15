@@ -40,7 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'core',
     'accounts',
-    'django-email-verification',
+    #'django-email-verification',
     #'verify_email.apps.VerifyEmailConfig',
 ]
 
