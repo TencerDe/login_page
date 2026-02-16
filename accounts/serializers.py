@@ -1,68 +1,55 @@
 from rest_framework import serializers
-from .models import CustomUser, CustomUserManager, EmailVerificationToken, UserSession, PasswordResetToken
+from .models import CustomUser, EmailVerificationToken, UserSession, PasswordResetToken
+from django.utils import timesince, timezone
 
 class UserSessionSerializer(serializers.ModelSerializer):
     class Meta:
-        model = CustomUser
+        model = UserSession
         fields = ['id',
-                  'user',
-                  'refresh_token',
                   'device_name',
                   'ip_address',
                   'created_at',
                   'expires_at',
                   'is_revoked']
         
-        read_only_fields = ['ip_address',
-                            'created_at',
-                            'expires_at']
+        read_only_fields = ["ip_address", "created_at", "expires_at", "is_revoked"]
 
 
 #THIS SERIALIZER WILL HANDLE PASSWORD HASHING
 class RegisterSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only = True, min_lenght = 6)
+    password = serializers.CharField(write_only = True, min_length = 6)
     class Meta:
         model = CustomUser
         fields = ['email',
                   'password']
-        def create(self, validated_data):
-            password = validated_data.pop("password")
-            user = CustomUser.objects.create_user(password=password , **validated_data)
-            return user
+        
+    def validate_email(self, value):
+        value = value.strip().lower()
+        if CustomUser.objects.filter(email=value).exists():
+            raise serializers.ValidationError("Email is already re gistered")
+        return value
+
+    def create(self, validated_data):
+        password = validated_data.pop("password")
+        user = CustomUser.objects.create_user(password=password , **validated_data)
+        return user
         
 #THIS SERIALIZER WILL VERIFY EMAILVERIFICATIOPNTOKENS
-class EmailVerificationTokenSerializer(serializers.ModelSerializer):
-    class Meta:
-        fields = ['id', 
-                  'user',
-                  'created_at',
-                  'expires_at',
-                  'is_used']
-        read_only_fields = ['created_at',
-                  'is_used']
+class EmailVerificationTokenSerializer(serializers.Serializer):
+    
+    token = serializers.CharField()
 
+    def validate_token(self, value):
+        try:
+            token_obj = EmailVerificationToken.objects.get(Token=value, is_used = False)
+        except EmailVerificationToken.DoesNotExist:
+            raise serializers.ValidationError('Invalid or expired verification tokens')
+        if token_obj.expires_at < timezone.now():
+            raise serializers.ValidationError("Verification link has expired")
 
-class UserSessionSerialzer(serializers.ModelSerializer):
-    class Meta:
-        fields = ['id', 
-                  'user',
-                  'refresh_token',
-                  'device_name',
-                  'ip_address',
-                  'created_at',
-                  'expires_at',
-                  'is_revoked']
-        read_only_fields = ['created_at',
-                  'is_revoked']
+        return value
+
         
-class PasswordResetTokenSerializer(serializers.ModelSerializer):
-    class Meta:
-        fields = ['id', 
-                  'user',
-                  'created_at',
-                  'expires_at',
-                  'ip_address',
-                  'is_used']
-        read_only_fields = ['created_at',
-                  'is_used']
-
+class PasswordResetTokenSerializer(serializers.Serializer):
+    token = serializers.CharField()
+    new_password = serializers.CharField(write_only = True, min_length = 6)
