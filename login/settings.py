@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'core',
     'accounts',
+    'rest_framework',
     #'django-email-verification',
     #'verify_email.apps.VerifyEmailConfig',
 ]
@@ -132,3 +133,10 @@ AUTH_USER_MODEL = 'accounts.CustomUser'
 # EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PW')
 
 # DEFAULT_FROM_EMAIL = 'noreply<no_reply@domain.com>'
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+}
+
