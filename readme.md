@@ -112,31 +112,239 @@ Upcoming layers will include:
 The database is designed before writing authentication APIs to prevent schema refactors later.
 
 ---
+## Phase 3Signup Backend Flow (In Progress)
 
-## Current Status
+Phase 3 implements the real backend behavior for signup and email verification using Django REST Framework and a service-based architecture.
+
+1. Django REST Framework Integration
+
+Django REST Framework has been installed and configured to support API-based authentication flows.
+
+Purpose
+
+Enable reusable authentication APIs for web and mobile applications.
+
+2. Serializer Layer Implemented
+
+Serializers were created to validate incoming API data while keeping business logic separate.
+
+Implemented Serializers
+
+RegisterSerializer
+
+Validates email and password
+
+Normalizes email
+
+Checks duplicate email
+
+Uses CustomUserManager for secure password hashing
+
+EmailVerificationTokenSerializer
+
+Accepts verification token
+
+Validates token existence
+
+Checks token expiry
+
+Ensures token is unused
+
+UserSessionSerializer
+
+Read-only serializer for session inspection
+
+Prevents sensitive data exposure
+
+PasswordResetTokenSerializer
+
+Handles token + new password validation
+
+Design Rule Followed
+
+Serializers validate input only.
+They do not create tokens or send emails.
+
+3. Service Layer Introduced
+
+A proper service-based architecture has been created inside:
+
+accounts/services/
+
+This separates business logic from views.
+
+Current Service Files
+accounts/services/
+│
+├── user_service.py
+├── token_service.py
+├── email_service.py  (structure prepared)
+├── session_service.py (planned)
+└── password_service.py (planned)
+
+4. user_service Implemented
+Function
+
+create_user_for_signup(email, password, **extra_fields)
+
+Behavior
+
+Uses CustomUserManager to create user securely
+
+Password hashing handled automatically
+
+User created with is_verified=False
+
+Returns created user object
+
+Purpose
+
+Centralize user creation logic and avoid duplication across APIs.
+
+5. token_service Implemented
+Functions Implemented
+
+create_verification_token(user)
+
+Deletes old unused tokens
+
+Generates secure token using secrets
+
+Sets expiry (10 minutes)
+
+Stores token in database
+
+Returns token string
+
+validate_verification_token(token)
+
+Checks token exists
+
+Checks token not used
+
+Checks token not expired
+
+Returns token object if valid
+
+mark_token_used(token_obj)
+
+Marks token as used after verification
+
+Purpose
+
+Ensure secure and predictable email verification flow.
+
+6. Email Service Structure Prepared
+
+File created:
+
+accounts/services/email_service.py
+
+Planned functionality:
+
+Send verification email
+
+Send password reset email
+
+Future support for async email sending
+
+Console email backend will be used initially for testing.
+
+7. Architecture Improvements Implemented
+
+The project now follows a strict layered architecture:
+
+Serializer → Service → Manager → Model → Database
+
+Benefits:
+
+Clean logic separation
+
+Easier debugging
+
+Reusable backend
+
+Production-ready structure
+
+Current Phase 3 Status
 
 Completed:
 
-* Custom User Model
-* Custom Manager
-* Admin Integration
-* Email Verification Token Schema
+DRF setup
 
-In Progress:
+Serializer layer
 
-* Session / Refresh Token Model
+user_service
 
-Planned:
+token_service
 
-* Password Reset Model
-* Signup flow
-* Magic link verification flow
-* Login system
-* Token lifecycle management
-* Logout mechanisms
-* Authorization
-* Rate limiting
-* Production security practices
+Email service structure
+
+Pending:
+
+Implement email sending logic
+
+Signup API view
+
+Email verification endpoint
+
+Rate limiting
+
+Logging
+
+Phase 3 completion estimate: ~60%
+
+Upcoming Work
+
+Next immediate tasks:
+
+Implement email_service.send_verification_email()
+
+Create Signup API View
+
+Create Verification Endpoint
+
+Add request throttling
+
+Add logging and audit tracking
+
+After Phase 3:
+
+Login API with JWT
+
+Refresh token flow
+
+Logout system
+
+Password reset implementation
+
+Security hardening
+
+Key Learnings So Far
+
+Database-first authentication design prevents future refactoring
+
+Service layer keeps backend scalable
+
+Token lifecycle must be strictly controlled
+
+Security must be designed early, not patched later
+
+Goal Reminder
+
+The objective remains to build a reusable authentication backend that can be integrated into future Django web or mobile projects with minimal modification.
+
+The system prioritizes:
+
+Security
+
+Clean architecture
+
+Scalability
+
+Maintainability
+
+Contributors should continue following these principles when extending the project.
 
 ---
 
