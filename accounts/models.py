@@ -37,13 +37,25 @@ class CustomUserManager(BaseUserManager):
 
 
 class CustomUser(AbstractUser):
-    username = None #Removing username field for setting email as primary login method
-    email = models.EmailField(unique=True, null=False, blank=False)
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    is_verified = models.BooleanField(default=False, help_text="Please verify yourself from your email before logging in")
-    USERNAME_FIELD = 'email'
+    username = None
+    email = models.EmailField(unique=True)
+
+    role = models.CharField(
+        max_length=20,
+        choices=[
+            ("user", "User"),
+            ("admin", "Admin"),
+        ],
+        default="user"
+    )
+
+    is_verified = models.BooleanField(default=False)
+
+    USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
 
+    def is_admin(self):
+        return self.role == "admin"
     objects = CustomUserManager()
 
 

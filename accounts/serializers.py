@@ -1,6 +1,9 @@
 from rest_framework import serializers
 from .models import CustomUser, EmailVerificationToken, UserSession, PasswordResetToken
 from django.utils import timesince, timezone
+from django.contrib.auth import authenticate, login
+from django.shortcuts import render, redirect
+
 
 class UserSessionSerializer(serializers.ModelSerializer):
     class Meta:
@@ -53,3 +56,24 @@ class EmailVerificationTokenSerializer(serializers.Serializer):
 class PasswordResetTokenSerializer(serializers.Serializer):
     token = serializers.CharField()
     new_password = serializers.CharField(write_only = True, min_length = 6)
+
+
+class LoginSerializer(serializers.Serializer):
+    email = serializers.EmailField(write_only=True)
+    password = serializers.CharField(write_only=True, style={"input_type": "password"})
+
+    def validate(self, data):
+        email = data.get("email")
+        password = data.get("password")
+
+        if not email or not password:
+            raise serializers.ValidationError(
+                'Both "email" and "password" are required.',
+                code="authorization"
+            )
+
+        # normalize email (good practice)
+        data["email"] = email.strip().lower()
+
+        return data
+
